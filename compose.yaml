@@ -1,0 +1,47 @@
+version: "3.8"
+services:
+  web:
+    command: sh -c '/app/bin/resume eval "Resume.Release.migrate" && /app/bin/server'
+    build:
+      context: .
+      args: 
+        API_USER: ${API_USER}
+        API_PASSWORD: ${API_PASSWORD}
+        DATABASE_URL: ${DATABASE_URL}
+        SECRET_KEY_BASE: ${SECRET_KEY_BASE} 
+    ports: 
+      - 4001:4001
+    environment:
+      API_USER: ${API_USER}
+      API_PASSWORD: ${API_PASSWORD}
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE} 
+    depends_on:
+      - db
+      - proxy
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: work_api
+    ports: 
+      - 5433:5432
+    volumes:
+      - db:/var/lib/postgresql/data
+  proxy:
+    image: caddy
+    restart: unless-stopped
+    ports:
+      - 443:443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - static:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  db:
+    driver: local
+  static:
+  caddy_data: 
+  caddy_config:
