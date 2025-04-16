@@ -1,3 +1,7 @@
+pjslab.net {
+    redir https://www.yourdomain.com{uri} permanent
+}
+
 www.pjslab.net {
     reverse_proxy * web:4000
 }
