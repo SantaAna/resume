@@ -1,5 +1,5 @@
 pjslab.net {
-    redir https://www.yourdomain.com{uri} permanent
+    redir https://www.pjslab.net{uri} permanent
 }
 
 www.pjslab.net {
