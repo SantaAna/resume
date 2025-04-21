@@ -17,7 +17,12 @@ defmodule ResumeWeb.Router do
   scope "/", ResumeWeb do
     pipe_through :browser
 
-    live "/", Live.ResumeLive, :home
+    live_session :default do
+      live "/", Live.HomeLive, :home
+      live "/resume", Live.ResumeLive, :resume
+      live "/posts", Live.PostsLive, :list
+      live "/posts/:id", Live.PostsLive, :show
+    end
   end
 
   # Other scopes may use custom stacks.
