@@ -27,6 +27,18 @@
       })();
     </script>
   </head>
+  <div class="navbar bg-base-200 shadow-sm sticky top-0 z-100">
+    <div class="flex-1">
+      <.link navigate="/" class="btn btn-ghost text-xl ml-3">Patrick</.link>
+    </div>
+
+    <div class="flex-none">
+      <div class="menu menu-horizontal px-1">
+        <li><.link navigate="/"> home </.link></li>
+        <li><.link navigate="/resume"> resume </.link></li>
+      </div>
+    </div>
+  </div>
   <body>
     {@inner_content}
   </body>
