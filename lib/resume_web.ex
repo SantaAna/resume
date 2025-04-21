@@ -86,6 +86,8 @@ defmodule ResumeWeb do
       import Phoenix.HTML
       # Core UI components
       import ResumeWeb.CoreComponents
+      # My own UI components
+      import ResumeWeb.MyComponenets
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS
