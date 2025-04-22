@@ -9,7 +9,7 @@ defmodule ResumeWeb.Live.ResumeLive do
           <header class="text-left pt-6">
             <h1 class="text-4xl font-bold mb-2 text-base-content">Patrick Struthers</h1>
             <p class="text-base-content">
-              Security professional with 7 years of experience in information security. Possesses clear understanding of the connection between business and security needs and the technical and soft skills to satisfy both with an exceptional ability to acquire new skills as needed.
+              Security professional with 10 years of experience in information security. Possesses clear understanding of the connection between business and security needs and the technical and soft skills to satisfy both with an exceptional ability to acquire new skills as needed.
             </p>
           </header>
 
