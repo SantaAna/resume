@@ -29,7 +29,22 @@
 /* This file is for your main application CSS */
 
 .makeup .hll {background-color: #49483e}
-.makeup {color: #f8f8f2; background-color: #272822}.makeup .unselectable {
+.makeup {
+  color: #f8f8f2; 
+  background-color: #272822;
+  padding: 1em;
+  margin: 0;
+  display: block;
+}
+.makeup pre {
+  margin: 0;
+  line-height: normal;
+}
+.makeup code {
+  display: inline-block;
+  width: 100%;
+}
+.makeup .unselectable {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
