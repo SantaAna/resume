@@ -3,7 +3,7 @@ defmodule ResumeWeb.Live.ResumeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="lg:max-w-6xl md:max-w-3xl sm:max-w-xl mx-auto px-2">
+    <div class="lg:max-w-6xl md:max-w-3xl sm:max-w-xl px-2 mx-auto">
       <div class="lg:grid lg:grid-cols-3 gap-8">
         <div class="lg:col-span-2">
           <header class="text-left pt-6">
