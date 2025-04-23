@@ -1,13 +1,8 @@
 version: "3.8"
 services:
   web:
+    image: docker pull ghcr.io/santaana/resume:latest
     command: sh -c '/app/bin/resume eval "Resume.Release.migrate" && /app/bin/server'
-    build:
-      image: docker pull ghcr.io/santaana/resume:latest
-      args: 
-        DATABASE_URL: ${DATABASE_URL}
-        SECRET_KEY_BASE: ${SECRET_KEY_BASE} 
-        PHX_HOST: ${PHX_HOST}
     ports: 
       - 4001:4001
     environment:
