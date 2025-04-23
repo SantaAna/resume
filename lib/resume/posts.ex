@@ -18,14 +18,14 @@ defmodule Resume.Posts.PostStyling do
 
   def post_registered_processors() do
     [
-      {"h1", add_classes(~w(text-2xl))},
-      {"h2", add_classes(~w(text-xl))},
-      {"h3", add_classes(~w(text-lg))},
-      {"ol", add_classes(~w(list-decimal list-inside))},
-      {"ul", add_classes(~w(list-disc list-inside))},
+      {"h1", add_classes(~w(text-3xl))},
+      {"h2", add_classes(~w(text-2xl font-bold mb-1 mt-8))},
+      {"h3", add_classes(~w(text-xl font-semi-bold mb-1 mt-4))},
+      {"ol", add_classes(~w(list-decimal list-inside ml-2 mb-2))},
+      {"ul", add_classes(~w(list-disc list-inside ml-2 mb-2))},
       {"li", add_classes(~w(text-base-content))},
       {"hr", add_classes(~w(text-base-content))},
-      {"p", add_classes(~w(text-base-content prose))},
+      {"p", add_classes(~w(text-base-content prose my-2))},
       {"a", add_classes(~w(link link-primary))},
       {"img", add_classes(~w(mx-auto my-3))},
       {"blockquote", add_classes(~w(border-l-4 border-accent p-4))},
@@ -57,7 +57,7 @@ defmodule Resume.Posts do
 
   def posts(:all), do: @posts
 
-  def posts(:recent), do: Enum.sort_by(@posts, & &1.date) |> Enum.take(5)
+  def posts(:recent), do: Enum.sort_by(posts(), & &1.date) |> Enum.take(5)
 
   def get_by_id(id) when is_binary(id) do
     Enum.find(@posts, &(&1.id == id))
