@@ -17,7 +17,7 @@ defmodule ResumeWeb.Router do
   scope "/", ResumeWeb do
     pipe_through :browser
 
-    live_session :default do
+    live_session :visitor do
       live "/", Live.HomeLive, :home
       live "/resume", Live.ResumeLive, :resume
       live "/posts", Live.PostsLive, :list

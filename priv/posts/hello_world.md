@@ -2,8 +2,8 @@
   title: "Markdown Examples",
   date: "2025-04-18",
   id: "1",
-  tags: ~w(markdown public), 
-  summary: "this is a stupid post this is a stupid postthis is a stupid postthis is a stupid postthis is a stupid postthis is a stupid postthis is a stupid postthis is a stupid post"
+  tags: ~w(markdown), 
+  summary: "this is a test post"
 }
 ---
 
