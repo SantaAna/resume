@@ -3,7 +3,7 @@ defmodule ResumeWeb.Live.HomeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="container mx-auto max-w-4xl px-4">
+    <div class="container mx-auto  px-4">
       <div class="hero min-h-[60vh]  rounded-box my-8">
         <div class="hero-content text-center">
           <div class="max-w-3xl">

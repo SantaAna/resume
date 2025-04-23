@@ -3,9 +3,9 @@ defmodule ResumeWeb.Live.ResumeLive do
 
   def render(assigns) do
     ~H"""
-    <div class="max-w-6xl mx-auto">
-      <div class="grid grid-cols-3 gap-8">
-        <div class="col-span-2">
+    <div class="lg:max-w-6xl md:max-w-3xl sm:max-w-xl mx-auto px-2">
+      <div class="lg:grid lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
           <header class="text-left pt-6">
             <h1 class="text-4xl font-bold mb-2 text-base-content">Patrick Struthers</h1>
             <p class="text-base-content">

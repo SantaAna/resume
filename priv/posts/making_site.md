@@ -45,15 +45,21 @@ defmodule App.Posts.PostStyling do
   alias Earmark.AstTools
 
   def add_classes(class_list) do
-    #will walk the AST and merge provided class attributes into a node.
-    fn node -> AstTools.merge_atts_in_node(node, class: Enum.join(class_list, " ")) end
+    #will walk the AST and merge provided class 
+    #attributes into a node.
+    fn node -> 
+      AstTools.merge_atts_in_node(node, 
+        class: Enum.join(class_list, " ")
+      ) 
+    end
   end
 
   def post_registered_processors() do
     [
       
       {"h1", add_classes(~w(text-2xl))},
-      #add other classes here.  Earmark will match against node types.
+      #add other classes here. 
+      #Earmark will match against node types.
     ]
   end
 end
@@ -72,7 +78,8 @@ defmodule App.Posts do
     earmark_options:
       #Earmark is the library that takes care of parsing md files
       Earmark.Options.make_options!(
-        #registering our processors will tell earmark to invoke them on its generated AST.
+        #registering our processors will tell earmark to 
+        #invoke them on its generated AST.
         registered_processors: PostStyling.post_registered_processors()
       )
 end
@@ -81,12 +88,6 @@ end
 Finally, if you are using tailwind, you will need to tell it where it can find the classes you are using so it doesn't prune them from it's final build.  In tailwind v4 you can do this as an '@source' directive in your app.css
 
 ```css
-@import "tailwindcss" source(none);
-/* default entries */
-@source "../css";
-@source "../js";
-@source "../../lib/resume_web";
-/* path to your style module */
 @source "../../path/to/sytling_module.ex";
 ```
 
@@ -112,7 +113,8 @@ The route to PostsLive is doing the most work here.  If we provide an id in the 
 defmodule AppWeb.Live.PostsLive do
   use AppWeb, :live_view
 
-  #if we get an ID we want to extract it and provide it to our socket.
+  #if we get an ID we want to extract it 
+  #put it in our socket
   def handle_params(%{"id" => id}, _uri, socket) do
     socket
     |> assign(id: id)
@@ -120,12 +122,14 @@ defmodule AppWeb.Live.PostsLive do
     |> then(&{:noreply, &1})
   end
 
-  #if we don't then we can just pass along the socket.
+  #if we don't then we can just pass 
+  #along the socket.
   def handle_params(_, _uri, socket) do
     {:noreply, socket}
   end
 
-  #rendering our html based on assigns and our live_actions
+  #rendering our html based on assigns
+  #and our live_actions
   def render(assigns) do
     ~H"""
      <!-- 
@@ -138,7 +142,9 @@ defmodule AppWeb.Live.PostsLive do
       <.post_list posts={App.Posts.posts()} />
     </div>
     <div :if={@live_action == :show} class="mx-auto max-w-4xl">
-      <h1 class="text-3xl font-semi-bold mb-2 mt-4">{@post.title}</h1>
+      <h1 class="text-3xl font-semi-bold mb-2 mt-4">
+         {@post.title}
+       </h1>
       {raw(@post.body)}
     </div>
     """

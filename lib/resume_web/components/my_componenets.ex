@@ -30,7 +30,7 @@ defmodule ResumeWeb.MyComponenets do
 
   def post_list_entry(assigns) do
     ~H"""
-    <div class="card bg-base-200 shadow-sm hover:shadow-lg transition-shadow duration-200 mb-4 max-w-3xl min-w-3xl">
+    <div class="card bg-base-200 shadow-sm hover:shadow-lg transition-shadow duration-200 mb-4 lg:max-w-3xl lg:min-w-3xl md:max-w-2xl sm:max-w-xl">
       <div class="card-body">
         <div class="flex justify-between items-center gap-4">
           <h2 class="card-title text-primary">
