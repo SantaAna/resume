@@ -18,7 +18,7 @@ defmodule ResumeWeb.Live.PostsLive do
       <.post_list posts={Resume.Posts.posts()} />
     </div>
     <div :if={@live_action == :show} class="mx-auto max-w-4xl">
-      <h1 class="text-3xl font-semi-bold mb-2 mt-4">{@post.title}</h1>
+      <h1 class="text-4xl font-bold mb-2 mt-4">{@post.title}</h1>
       {raw(@post.body)}
     </div>
     """
