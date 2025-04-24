@@ -1,8 +1,8 @@
 %{
-  title: "Making this Site",
+  title: "making this site",
   date: "2025-04-22",
   id: "2",
-  tags: ~w(elixir web public), 
+  tags: ~w(elixir web public frontpage), 
   summary: "Making a personal site with Phoenix and MarkDown"
 }
 ---

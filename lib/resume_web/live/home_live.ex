@@ -21,7 +21,7 @@ defmodule ResumeWeb.Live.HomeLive do
       </div>
 
       <div class="flex justify-center">
-        <.post_list posts={Resume.Posts.posts(:recent)} title="Recent Posts" />
+        <.post_list posts={Resume.Posts.front_page_posts(5)} title="Recent Posts" />
       </div>
     </div>
     """

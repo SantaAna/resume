@@ -19,13 +19,13 @@ defmodule Resume.Posts.PostStyling do
   def post_registered_processors() do
     [
       {"h1", add_classes(~w(text-3xl))},
-      {"h2", add_classes(~w(text-2xl font-bold mb-1 mt-8))},
-      {"h3", add_classes(~w(text-xl font-semi-bold mb-1 mt-4))},
+      {"h2", add_classes(~w(text-2xl font-bold mb-4 mt-8))},
+      {"h3", add_classes(~w(text-xl font-semi-bold mb-4 mt-4))},
       {"ol", add_classes(~w(list-decimal list-inside ml-2 mb-2))},
       {"ul", add_classes(~w(list-disc list-inside ml-2 mb-2))},
       {"li", add_classes(~w(text-base-content))},
       {"hr", add_classes(~w(text-base-content))},
-      {"p", add_classes(~w(text-base-content prose my-2))},
+      {"p", add_classes(~w(text-base-content prose leading-7 mb-4))},
       {"a", add_classes(~w(link link-primary))},
       {"img", add_classes(~w(mx-auto my-3))},
       {"blockquote", add_classes(~w(border-l-4 border-accent p-4))},
@@ -50,16 +50,42 @@ defmodule Resume.Posts do
       )
 
   @doc """
-  Returns all public posts.  If you want all posts 
-  use posts/1 with :all.
+  Returns `count` posts that should be 
+  displayed on the front page. The posts will  
+  be sorted by date in descending order. 
   """
-  def posts, do: Enum.filter(@posts, fn post -> "public" in post.tags end)
+  def front_page_posts(count),
+    do:
+      @posts
+      |> Enum.filter(&has_tag?(&1, "public"))
+      |> Enum.filter(&has_tag?(&1, "frontpage"))
+      |> Enum.sort_by(& &1.date, :desc)
+      |> Enum.take(count)
 
-  def posts(:all), do: @posts
+  @doc """
+  returns all posts.  By default will return sorted by 
+  date, but you can provide a custom `sort_field` and 
+  `order`.
+  """
+  def all_posts(sort_field \\ :date, order \\ :desc) do
+    @posts
+    |> Enum.sort_by(&Map.get(&1, sort_field), order)
+  end
 
-  def posts(:recent), do: Enum.sort_by(posts(), & &1.date) |> Enum.take(5)
+  def public_posts(sort_field \\ :date, order \\ :desc) do
+    all_posts(sort_field, order)
+    |> Enum.filter(&has_tag?(&1, "public"))
+  end
 
-  def get_by_id(id) when is_binary(id) do
-    Enum.find(@posts, &(&1.id == id))
+  @doc """
+  Fetches the post with the given id.
+  """
+  def by_id(id) when is_binary(id) do
+    @posts
+    |> Enum.find(&(&1.id == id))
+  end
+
+  defp has_tag?(post, tag) do
+    tag in post.tags
   end
 end
