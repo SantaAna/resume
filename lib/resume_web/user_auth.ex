@@ -172,6 +172,21 @@ defmodule ResumeWeb.UserAuth do
     end
   end
 
+  def on_mount(:owner_only, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    if socket.assigns.current_scope &&
+         socket.assigns.current_scope.user.email == Application.get_env(:resume, :admin_user) do
+      {:cont, socket}
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.redirect(to: ~p"/")
+
+      {:halt, socket}
+    end
+  end
+
   def on_mount(:require_sudo_mode, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
@@ -212,6 +227,17 @@ defmodule ResumeWeb.UserAuth do
       |> put_flash(:error, "You must log in to access this page.")
       |> maybe_store_return_to()
       |> redirect(to: ~p"/users/log-in")
+      |> halt()
+    end
+  end
+
+  def owner_only(conn, _opts) do
+    if conn.assigns.current_scope &&
+         conn.assigns.current_scope.user.email == Application.get_env(:resume, :admin_user) do
+      conn
+    else
+      conn
+      |> redirect(to: ~p"/")
       |> halt()
     end
   end

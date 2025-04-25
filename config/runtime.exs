@@ -28,7 +28,15 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
+  admin_user =
+    System.get_env("ADMIN_USER") ||
+      raise """
+      environment varialbe ADMIN_USER is missing.
+      """
+
   maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+
+  config :resume, admin_user: admin_user
 
   config :resume, Resume.Repo,
     # ssl: true,
