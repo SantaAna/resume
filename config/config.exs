@@ -24,6 +24,10 @@ config :resume,
   ecto_repos: [Resume.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# this adds the postgrex types for pg vector.
+# see lib/postgrex_types.ex
+config :resume, Resume.Repo, types: Resume.PostgrexTypes
+
 # Configures the endpoint
 config :resume, ResumeWeb.Endpoint,
   url: [host: "localhost"],

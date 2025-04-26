@@ -66,7 +66,8 @@ defmodule Resume.MixProject do
       # real requesting IP to the conn 
       # because we are behind a reverse proxy
       {:plug_attack, "~> 0.4.3"},
-      {:remote_ip, "~> 1.2"}
+      {:remote_ip, "~> 1.2"},
+      {:pgvector, "~> 0.3.0"}
     ]
   end
 
