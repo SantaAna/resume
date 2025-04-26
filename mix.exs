@@ -61,7 +61,8 @@ defmodule Resume.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:nimble_publisher, "~> 1.0"},
-      {:makeup_elixir, ">= 0.0.0"}
+      {:makeup_elixir, ">= 0.0.0"},
+      {:plug_attack, "~> 0.4.3"}
     ]
   end
 

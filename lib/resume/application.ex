@@ -15,7 +15,8 @@ defmodule Resume.Application do
       # Start a worker by calling: Resume.Worker.start_link(arg)
       # {Resume.Worker, arg},
       # Start to serve requests, typically the last entry
-      ResumeWeb.Endpoint
+      ResumeWeb.Endpoint,
+      {PlugAttack.Storage.Ets, name: Resume.PlugAttack.Storage, clean_period: 60_000}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

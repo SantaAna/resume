@@ -17,6 +17,10 @@ defmodule ResumeWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :throttle_login do
+    plug ResumeWeb.ThrottleLogin
+  end
+
   scope "/", ResumeWeb do
     pipe_through :browser
 
@@ -64,7 +68,7 @@ defmodule ResumeWeb.Router do
   end
 
   scope "/", ResumeWeb do
-    pipe_through [:browser]
+    pipe_through [:browser, :throttle_login]
 
     live_session :current_user,
       on_mount: [{ResumeWeb.UserAuth, :mount_current_scope}] do
