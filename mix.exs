@@ -62,7 +62,11 @@ defmodule Resume.MixProject do
       {:bandit, "~> 1.5"},
       {:nimble_publisher, "~> 1.0"},
       {:makeup_elixir, ">= 0.0.0"},
-      {:plug_attack, "~> 0.4.3"}
+      # plug attack needs remote_ip to add the 
+      # real requesting IP to the conn 
+      # because we are behind a reverse proxy
+      {:plug_attack, "~> 0.4.3"},
+      {:remote_ip, "~> 1.2"}
     ]
   end
 
