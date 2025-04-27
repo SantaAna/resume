@@ -14,7 +14,7 @@ services:
       - db
       - proxy
   db:
-    image: postgres
+    image: pgvector/pgvector:pg17
     environment:
       POSTGRES_USER: ${PG_USER}
       POSTGRES_PASSWORD: ${PG_PASSWORD}
