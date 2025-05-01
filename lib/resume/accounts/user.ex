@@ -9,6 +9,12 @@ defmodule Resume.Accounts.User do
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    has_many :jobs, Resume.Jobs.Job
+    has_many :skills, Resume.Skills.Skill
+    has_many :technologys, Resume.Technologies.Technology
+    has_many :certifications, Resume.Certifications.Certification
+    has_many :educations, Resume.Educations.Education
+    has_many :accomplishments, through: [:jobs, :accomplishments]
 
     timestamps(type: :utc_datetime)
   end
