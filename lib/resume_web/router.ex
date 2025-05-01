@@ -75,6 +75,10 @@ defmodule ResumeWeb.Router do
       # live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       # live "/users/log-in/:token", UserLive.Confirmation, :new
+      live "/jobs", JobLive.Index
+      live "/jobs/new", JobLive.Form, :new
+      live "/jobs/:id", JobLive.Show
+      live "/jobs/:id/edit", JobLive.Form, :edit
     end
 
     post "/users/log-in", UserSessionController, :create
