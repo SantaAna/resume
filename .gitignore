@@ -37,3 +37,6 @@ npm-debug.log
 
 #any decrpyted env files
 *.dec.env
+
+#this file does nothing, just using it to trigger tailwind LSP for development
+tailwind.config.js
