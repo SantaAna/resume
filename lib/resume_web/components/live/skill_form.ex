@@ -28,15 +28,13 @@ defmodule ResumeWeb.ComponentsLive.SkillForm do
           <.button phx-disable-with="Saving..." variant="primary">Save Skill</.button>
         </footer>
       </.form>
-      <div class="flex flex-col gap-2 mt-2">
-        <.skill_entry
-          :for={skill <- Enum.sort_by(@skills, & &1.id)}
-          skill={skill}
-          delete_action="skill-deleted"
-          edit_action="skill-edit"
-          target={@myself}
-        />
-      </div>
+      <.skill_table
+        skills={@skills}
+        delete_action="skill-deleted"
+        edit_action="skill-edit"
+        disable_edit={@action == :edit}
+        target={@myself}
+      />
     </div>
     """
   end
