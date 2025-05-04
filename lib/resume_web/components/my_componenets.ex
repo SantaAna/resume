@@ -10,8 +10,6 @@ defmodule ResumeWeb.MyComponenets do
     router: ResumeWeb.Router,
     statics: ResumeWeb.static_paths()
 
-  alias Phoenix.LiveView.JS
-
   attr :posts, :list, required: true
   attr :title, :string, default: nil
 
@@ -49,6 +47,7 @@ defmodule ResumeWeb.MyComponenets do
     </div>
     """
   end
+
   attr :technology, Resume.Technologies.Technology, required: true
   attr :delete_action, :string, required: true
   attr :edit_action, :string, required: true
@@ -100,6 +99,7 @@ defmodule ResumeWeb.MyComponenets do
     </tr>
     """
   end
+
   attr :technologies, :any, required: true, doc: "A stream of technolgoies"
   attr :delete_action, :string, required: true
   attr :edit_action, :string, required: true
