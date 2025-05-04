@@ -140,8 +140,6 @@ defmodule Resume.Technologies do
 
   """
   def change_technology(%Scope{} = scope, %Technology{} = technology, attrs \\ %{}) do
-    true = technology.user_id == scope.user.id
-
     Technology.changeset(technology, attrs, scope)
   end
 end
