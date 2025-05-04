@@ -315,4 +315,95 @@ defmodule ResumeWeb.MyComponenets do
     </div>
     """
   end
+
+  attr :education, Resume.Educations.Education, required: true
+  attr :delete_action, :string, required: true
+  attr :edit_action, :string, required: true
+  attr :disable_edit, :boolean, default: false, doc: "If true the edit button will be disabled"
+  attr :dom_id, :any, default: nil, doc: "A value for the id attribute, useful for streams"
+
+  attr :target, :any,
+    default: nil,
+    doc: ~S"""
+    The target for the events triggered by the buttons in the component.
+    In a live component you will likely want to set to @myself
+    """
+
+  def education_row(assigns) do
+    ~H"""
+    <tr id={@dom_id}>
+      <td>{@education.institution}</td>
+      <td>{@education.institution_type}</td>
+      <td>{@education.diploma_earned}</td>
+      <th>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="btn btn-xs btn-ghost btn-secondary"
+            phx-value-educationid={@education.id}
+            phx-click={@delete_action}
+            phx-target={@target}
+          >
+            Delete
+          </button>
+          <button
+            :if={!@disable_edit}
+            class="btn btn-ghost btn-xs btn-primary"
+            phx-click={@edit_action}
+            phx-value-educationid={@education.id}
+            phx-target={@target}
+          >
+            Edit
+          </button>
+          <button
+            :if={@disable_edit}
+            class="btn btn-xs btn-ghost btn-warning"
+            phx-value-educationid={@education.id}
+            phx-target={@target}
+          >
+            Disabled
+          </button>
+        </div>
+      </th>
+    </tr>
+    """
+  end
+
+  attr :educations, :any, required: true, doc: "A stream of educations"
+  attr :delete_action, :string, required: true
+  attr :edit_action, :string, required: true
+  attr :disable_edit, :boolean, default: false, doc: "If true the edit buttons will be disabled"
+
+  attr :target, :any,
+    default: nil,
+    doc: ~S"""
+    The target for the events triggered by the buttons in the component.
+    In a live component you will likely want to set to @myself
+    """
+
+  def education_table(assigns) do
+    ~H"""
+    <div class="overflow-x-auto">
+      <table class="table table-zebra">
+        <thead>
+          <th>Institution</th>
+          <th>Institution Type</th>
+          <th>Diploma</th>
+          <th></th>
+        </thead>
+        <tbody phx-update="stream" id="education-table">
+          <.education_row
+            :for={{dom_id, edu} <- @educations}
+            education={edu}
+            delete_action={@delete_action}
+            edit_action={@edit_action}
+            target={@target}
+            disable_edit={@disable_edit}
+            dom_id={dom_id}
+          />
+        </tbody>
+      </table>
+    </div>
+    """
+  end
 end
