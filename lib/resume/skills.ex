@@ -140,8 +140,6 @@ defmodule Resume.Skills do
 
   """
   def change_skill(%Scope{} = scope, %Skill{} = skill, attrs \\ %{}) do
-    true = skill.user_id == scope.user.id
-
     Skill.changeset(skill, attrs, scope)
   end
 end

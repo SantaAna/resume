@@ -137,7 +137,7 @@ defmodule Resume.Jobs do
 
   """
   def change_job(%Scope{} = scope, %Job{} = job, attrs \\ %{}) do
-    # true = job.user_id == scope.user.id
+    true = job.user_id == scope.user.id
 
     Job.changeset(job, attrs, scope)
   end
