@@ -140,8 +140,6 @@ defmodule Resume.Certifications do
 
   """
   def change_certification(%Scope{} = scope, %Certification{} = certification, attrs \\ %{}) do
-    true = certification.user_id == scope.user.id
-
     Certification.changeset(certification, attrs, scope)
   end
 end
