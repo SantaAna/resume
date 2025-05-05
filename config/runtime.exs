@@ -20,6 +20,16 @@ if System.get_env("PHX_SERVER") do
   config :resume, ResumeWeb.Endpoint, server: true
 end
 
+# sets key used for voyage embedding service
+config :resume,
+       :voyage_key,
+       System.get_env("VOYAGE_KEY") || raise("Environment VOYAGE_KEY is missing.")
+
+# sets key used for langsearch web searh service
+config :resume,
+       :langsearch_key,
+       System.get_env("LANGSEARCH_KEY") || raise("Environment LANGSEARCH_KEY is missing.")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
