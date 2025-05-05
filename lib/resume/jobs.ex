@@ -41,7 +41,18 @@ defmodule Resume.Jobs do
 
   """
   def list_jobs(%Scope{} = scope) do
-    Repo.all(Job)
+    Repo.all(from job in Job, where: job.user_id == ^scope.user.id)
+  end
+
+  @doc """
+  As list jobs but will preload accomplishments
+  """
+  def list_jobs_with_accomplishments(%Scope{} = scope) do
+    Repo.all(
+      from job in Job,
+        where: job.user_id == ^scope.user.id,
+        preload: [:accomplishments]
+    )
   end
 
   @doc """
@@ -58,8 +69,12 @@ defmodule Resume.Jobs do
       ** (Ecto.NoResultsError)
 
   """
-  def get_job!(%Scope{} = scope, id) do
-    Repo.get_by!(Job, id: id)
+  def get_job!(%Scope{} = scope, id, preloads \\ []) do
+    Repo.one!(
+      from job in Job,
+        where: job.user_id == ^scope.user.id,
+        preload: ^preloads
+    )
   end
 
   @doc """
@@ -77,7 +92,7 @@ defmodule Resume.Jobs do
   def create_job(%Scope{} = scope, attrs \\ %{}) do
     with {:ok, job = %Job{}} <-
            %Job{}
-           |> Job.all_in_one_changeset(attrs)
+           |> Job.all_in_one_changeset(attrs, scope)
            |> Repo.insert() do
       broadcast(scope, {:created, job})
       {:ok, job}
@@ -96,10 +111,10 @@ defmodule Resume.Jobs do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_job(%Job{} = job, attrs) do
+  def update_job(%Scope{} = scope, %Job{} = job, attrs) do
     with {:ok, job = %Job{}} <-
            job
-           |> Job.all_in_one_changeset(attrs)
+           |> Job.all_in_one_changeset(attrs, scope)
            |> Repo.update() do
       {:ok, job}
     end
@@ -146,7 +161,7 @@ defmodule Resume.Jobs do
   Creates a changeset that will create achievements and 
   sub-acheivements
   """
-  def change_with_all_children(%Job{} = job, attrs \\ %{}) do
-    Job.all_in_one_changeset(job, attrs)
+  def change_with_all_children(%Scope{} = scope, %Job{} = job, attrs \\ %{}) do
+    Job.all_in_one_changeset(job, attrs, scope)
   end
 end

@@ -36,6 +36,7 @@ defmodule ResumeWeb.MyComponenets do
               {@post.title}
             </.link>
           </h2>
+
           <span class="text-sm text-base-content/70">
             {Calendar.strftime(@post.date, "%B %d, %Y")}
           </span>
@@ -316,6 +317,44 @@ defmodule ResumeWeb.MyComponenets do
     """
   end
 
+  attr :educations, :any, required: true, doc: "A stream of educations"
+  attr :delete_action, :string, required: true
+  attr :edit_action, :string, required: true
+  attr :disable_edit, :boolean, default: false, doc: "If true the edit buttons will be disabled"
+
+  attr :target, :any,
+    default: nil,
+    doc: ~S"""
+    The target for the events triggered by the buttons in the component.
+    In a live component you will likely want to set to @myself
+    """
+
+  def education_table(assigns) do
+    ~H"""
+    <div class="overflow-x-auto">
+      <table class="table table-zebra">
+        <thead>
+          <th>Institution</th>
+          <th>Institution Type</th>
+          <th>Diploma</th>
+          <th></th>
+        </thead>
+        <tbody phx-update="stream" id="education-table">
+          <.education_row
+            :for={{dom_id, edu} <- @educations}
+            education={edu}
+            delete_action={@delete_action}
+            edit_action={@edit_action}
+            target={@target}
+            disable_edit={@disable_edit}
+            dom_id={dom_id}
+          />
+        </tbody>
+      </table>
+    </div>
+    """
+  end
+
   attr :education, Resume.Educations.Education, required: true
   attr :delete_action, :string, required: true
   attr :edit_action, :string, required: true
@@ -369,7 +408,7 @@ defmodule ResumeWeb.MyComponenets do
     """
   end
 
-  attr :educations, :any, required: true, doc: "A stream of educations"
+  attr :jobs, :any, required: true, doc: "A stream of jobs"
   attr :delete_action, :string, required: true
   attr :edit_action, :string, required: true
   attr :disable_edit, :boolean, default: false, doc: "If true the edit buttons will be disabled"
@@ -381,20 +420,22 @@ defmodule ResumeWeb.MyComponenets do
     In a live component you will likely want to set to @myself
     """
 
-  def education_table(assigns) do
+  def job_table(assigns) do
     ~H"""
     <div class="overflow-x-auto">
       <table class="table table-zebra">
         <thead>
-          <th>Institution</th>
-          <th>Institution Type</th>
-          <th>Diploma</th>
+          <th>Company</th>
+          <th>Title</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Accomplishments</th>
           <th></th>
         </thead>
-        <tbody phx-update="stream" id="education-table">
-          <.education_row
-            :for={{dom_id, edu} <- @educations}
-            education={edu}
+        <tbody phx-update="stream" id="job-table">
+          <.job_row
+            :for={{dom_id, job} <- @jobs}
+            job={job}
             delete_action={@delete_action}
             edit_action={@edit_action}
             target={@target}
@@ -406,4 +447,78 @@ defmodule ResumeWeb.MyComponenets do
     </div>
     """
   end
+
+  attr :job, Resume.Jobs.Job, required: true
+  attr :delete_action, :string, required: true
+  attr :edit_action, :string, required: true
+  attr :disable_edit, :boolean, default: false, doc: "If true the edit button will be disabled"
+  attr :dom_id, :any, default: nil, doc: "A value for the id attribute, useful for streams"
+
+  attr :target, :any,
+    default: nil,
+    doc: ~S"""
+    The target for the events triggered by the buttons in the component.
+    In a live component you will likely want to set to @myself
+    """
+
+  def job_row(assigns) do
+    ~H"""
+    <tr id={@dom_id}>
+      <td>{@job.company}</td>
+      <td>{@job.title}</td>
+      <td>{@job.start_date}</td>
+      <td>{@job.end_date}</td>
+      <td>{accomps_string(@job, 4)}</td>
+      <th>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="btn btn-xs btn-ghost btn-secondary"
+            phx-value-jobid={@job.id}
+            phx-click={@delete_action}
+            phx-target={@target}
+          >
+            Delete
+          </button>
+          <button
+            :if={!@disable_edit}
+            class="btn btn-ghost btn-xs btn-primary"
+            phx-click={@edit_action}
+            phx-value-jobid={@job.id}
+            phx-target={@target}
+          >
+            Edit
+          </button>
+          <button
+            :if={@disable_edit}
+            class="btn btn-xs btn-ghost btn-warning"
+            phx-value-jobid={@job.id}
+            phx-target={@target}
+          >
+            Disabled
+          </button>
+        </div>
+      </th>
+    </tr>
+    """
+  end
+
+  # creats list string with trailing replaced with elipsis
+  defp accomps_string(%Resume.Jobs.Job{accomplishments: accomps}, count) when is_list(accomps) do
+    elipsis? = length(accomps) >= count
+
+    accomps
+    |> Enum.map(& &1.name)
+    |> Enum.take(4)
+    |> then(fn
+      list when elipsis? ->
+        List.insert_at(list, "...", -1)
+
+      list ->
+        list
+    end)
+    |> Enum.join(",")
+  end
+
+  defp accomps_string(_), do: ""
 end
