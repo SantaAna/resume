@@ -1,4 +1,5 @@
 import Config
+require Logger
 
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
@@ -20,25 +21,38 @@ if System.get_env("PHX_SERVER") do
   config :resume, ResumeWeb.Endpoint, server: true
 end
 
+raiser = fn string_to_raise, default_value ->
+  if config_env() == :prod do
+    raise(string_to_raise)
+  else
+    Logger.warn(string_to_raise)
+    default_value
+  end
+end
+
 # sets key used for voyage embedding service
 config :resume,
        :voyage_key,
-       System.get_env("VOYAGE_KEY") || raise("Environment VOYAGE_KEY is missing.")
+       System.get_env("VOYAGE_KEY") ||
+         raiser.("Environment VOYAGE_KEY is missing.", "VOYAGE_KEY_MISSING")
 
 # sets key used for langsearch web searh service
 config :resume,
        :langsearch_key,
-       System.get_env("LANGSEARCH_KEY") || raise("Environment LANGSEARCH_KEY is missing.")
+       System.get_env("LANGSEARCH_KEY") ||
+         raiser.("Environment LANGSEARCH_KEY is missing.", "LANGSEARCHKEY_MISSING")
 
 # sets key used for openai used by langchain
 config :langchain,
        :openai_key,
-       System.get_env("OPENAI_KEY") || raise("Environment OPENAI_KEY is missing")
+       System.get_env("OPENAI_KEY") ||
+         raiser.("Environment OPENAI_KEY is missing", "OPENAI_KEY_MISSING")
 
 # sets org_id used for openai used by langchain
 config :langchain,
        :openai_org_id,
-       System.get_env("OPENAI_ORG_ID") || raise("Environment OPENAI_ORG_ID is missing")
+       System.get_env("OPENAI_ORG_ID") ||
+         raiser.("Environment OPENAI_ORG_ID is missing", "OPENAI_ORG_ID_MISSING")
 
 if config_env() == :prod do
   database_url =
