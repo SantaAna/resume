@@ -68,7 +68,8 @@ defmodule Resume.MixProject do
       {:plug_attack, "~> 0.4.3"},
       {:remote_ip, "~> 1.2"},
       {:pgvector, "~> 0.3.0"},
-      {:nimble_options, "~> 1.1"}
+      {:nimble_options, "~> 1.1"},
+      {:langchain, "~> 0.3.3"}
     ]
   end
 

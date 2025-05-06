@@ -30,6 +30,16 @@ config :resume,
        :langsearch_key,
        System.get_env("LANGSEARCH_KEY") || raise("Environment LANGSEARCH_KEY is missing.")
 
+# sets key used for openai used by langchain
+config :langchain,
+       :openai_key,
+       System.get_env("OPENAI_KEY") || raise("Environment OPENAI_KEY is missing")
+
+# sets org_id used for openai used by langchain
+config :langchain,
+       :openai_org_id,
+       System.get_env("OPENAI_ORG_ID") || raise("Environment OPENAI_ORG_ID is missing")
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
