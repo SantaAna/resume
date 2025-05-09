@@ -75,8 +75,8 @@ defmodule Resume.Embedding.Provider.VoyageLite do
       {:ok, %{embedding: e}} ->
         {:ok, e}
 
-      {:error, _} = e ->
-        %VoyageLiteError{reason: e}
+      {:error, e} ->
+        {:error, %VoyageLiteError{reason: e}}
     end
   end
 

@@ -101,8 +101,42 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, _exception} = e ->
-        %InferenceError{reason: e}
+      {:error, e} ->
+        {:error, %InferenceError{reason: e}}
+    end
+  end
+
+  @doc """
+  Produces embedding for the given `technology` with 
+  `technology_description`
+  """
+  @spec create_technology_embed(
+          technology_name :: String.t(),
+          technology_description :: String.t()
+        ) :: {:ok, String.t()} | {:error, InferenceError.t()}
+  def create_technology_embed(technology_name, technology_description) do
+    start_of_chain()
+    |> LLMChain.new!()
+    |> LLMChain.add_messages([
+      Message.new_system!(embedding_system_message("technology")),
+      Message.new_user!(
+        embedding_user_message(
+          "technology",
+          technology_name,
+          technology_description
+        )
+      )
+    ])
+    |> LLMChain.add_tools([
+      search_tool()
+    ])
+    |> LLMChain.run(mode: :while_needs_response)
+    |> case do
+      {:ok, final_chain} ->
+        {:ok, final_chain.last_message.content}
+
+      {:error, e} ->
+        {:error, %InferenceError{reason: e}}
     end
   end
 
@@ -136,8 +170,8 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, _exception} = e ->
-        %InferenceError{reason: e}
+      {:error, e} ->
+        {:error, %InferenceError{reason: e}}
     end
   end
 
@@ -166,8 +200,8 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, _exception} = e ->
-        %InferenceError{reason: e}
+      {:error, e} ->
+        {:error, %InferenceError{reason: e}}
     end
   end
 
