@@ -7,6 +7,7 @@ defmodule Resume.Certifications.Certification do
     field :description, :string
     field :embedding_content, :string
     field :last_embedded, :naive_datetime
+    field :last_user_content_update, :naive_datetime
     field :embedding, Pgvector.Ecto.Vector
     belongs_to :user, Resume.Accounts.User
 
@@ -19,5 +20,6 @@ defmodule Resume.Certifications.Certification do
     |> cast(attrs, [:name, :description])
     |> validate_required([:name, :description])
     |> put_change(:user_id, user_scope.user.id)
+    |> put_change(:last_user_content_update, Resume.Util.ecto_naive_now())
   end
 end

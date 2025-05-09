@@ -8,6 +8,7 @@ defmodule Resume.Skills.Skill do
     field :embedding_content, :string
     field :embedding, Pgvector.Ecto.Vector
     field :last_embedded, :naive_datetime
+    field :last_user_content_update, :naive_datetime
     belongs_to :user, Resume.Accounts.User
 
     timestamps(type: :utc_datetime)
@@ -19,5 +20,8 @@ defmodule Resume.Skills.Skill do
     |> cast(attrs, [:name, :description])
     |> validate_required([:name, :description])
     |> put_change(:user_id, user_scope.user.id)
+    |> put_change(:last_user_content_update, Resume.Util.ecto_naive_now())
+  end
+
   end
 end

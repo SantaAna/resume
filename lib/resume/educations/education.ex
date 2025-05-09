@@ -8,6 +8,7 @@ defmodule Resume.Educations.Education do
     field :diploma_earned, :string
     field :embedding_content, :string
     field :last_embedded, :naive_datetime
+    field :last_user_content_update, :naive_datetime
     belongs_to :user, Resume.Accounts.User
 
     timestamps(type: :utc_datetime)
@@ -27,5 +28,6 @@ defmodule Resume.Educations.Education do
       :diploma_earned
     ])
     |> put_change(:user_id, user_scope.user.id)
+    |> put_change(:last_user_content_update, Resume.Util.ecto_naive_now())
   end
 end
