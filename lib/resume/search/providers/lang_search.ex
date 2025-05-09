@@ -60,7 +60,7 @@ defmodule Resume.Search.Providers.LangSearch do
     |> Req.Request.append_response_steps(extract_results: &extract_results/1)
     |> Req.request()
     |> case do
-      {:ok, resp} -> Req.Response.get_private(resp, :to_return)
+      {:ok, resp} -> {:ok, Req.Response.get_private(resp, :to_return)}
       {:error, _} = e -> e
     end
   end

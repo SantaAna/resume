@@ -4,6 +4,7 @@ defmodule Resume.Embedding.Provider.VoyageLite do
   Embedding implementation for VoyageLite 
   embedding model provided by Voyage AI.
   """
+  import Resume.Util
 
   @embed_options NimbleOptions.new!(
                    input_type: [
@@ -26,7 +27,9 @@ defmodule Resume.Embedding.Provider.VoyageLite do
   #{NimbleOptions.docs(@embed_options)}
   """
   @impl true
-  def embed(input, options \\ []) do
+  def embed(input, options \\ [])
+
+  def embed(input, options) when is_non_empty_binary(input) do
     opts = NimbleOptions.validate!(options, @embed_options)
 
     Req.new(
@@ -44,6 +47,10 @@ defmodule Resume.Embedding.Provider.VoyageLite do
       {:ok, %{embedding: e}} -> {:ok, e}
       {:error, _} = e -> e
     end
+  end
+
+  def embed(input, _) do
+    raise ArgumentError, "Expected input to be a string but received: #{inspect(input)}"
   end
 
   defp embedding_missing({request, %{embedding: embedding} = response}) when is_list(embedding),

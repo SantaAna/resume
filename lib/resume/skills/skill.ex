@@ -23,5 +23,10 @@ defmodule Resume.Skills.Skill do
     |> put_change(:last_user_content_update, Resume.Util.ecto_naive_now())
   end
 
+  def embed_changeset(skill, embed_params) do
+    skill
+    |> cast(embed_params, [:embedding_content, :embedding])
+    |> validate_required([:embedding_content, :embedding, :name, :description, :user_id])
+    |> put_change(:last_embedded, Resume.Util.ecto_naive_now())
   end
 end
