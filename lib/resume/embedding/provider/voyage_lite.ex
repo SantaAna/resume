@@ -64,7 +64,8 @@ defmodule Resume.Embedding.Provider.VoyageLite do
       method: :post,
       url: url(),
       auth: {:bearer, get_api_key()},
-      json: prep_body(input, opts[:input_type], opts[:truncation])
+      json: prep_body(input, opts[:input_type], opts[:truncation]),
+      retry: :transient
     )
     |> Req.Request.put_header("content-type", "application/json")
     |> Req.Request.append_response_steps(check_status: &check_status/1)
