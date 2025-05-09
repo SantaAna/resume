@@ -62,6 +62,7 @@ defmodule ResumeWeb.Router do
     live_session :require_authenticated_user,
       on_mount: [{ResumeWeb.UserAuth, :owner_only}] do
       live "/secret", Live.SecretLive
+      live "/info-main", Live.UserInfoMainLive
     end
 
     # post "/users/update-password", UserSessionController, :update_password
