@@ -2,6 +2,15 @@ defmodule Resume.Skills.Skill do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %{
+          name: String.t(),
+          description: String.t(),
+          embedding_content: String.t(),
+          embedding: list(),
+          last_embedded: NaiveDateTime.t(),
+          last_user_content_update: NaiveDateTime.t()
+        }
+
   schema "skills" do
     field :name, :string
     field :description, :string
