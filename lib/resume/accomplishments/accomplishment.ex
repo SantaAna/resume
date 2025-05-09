@@ -2,6 +2,15 @@ defmodule Resume.Accomplishments.Accomplishment do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %{
+          name: String.t(),
+          description: String.t(),
+          embedding_content: String.t(),
+          embedding: Pgvector.Ecto.Vector.t(),
+          last_embedded: NaiveDateTime.t(),
+          job_id: integer()
+        }
+
   schema "accomplishments" do
     field :name, :string
     field :description, :string
@@ -27,5 +36,12 @@ defmodule Resume.Accomplishments.Accomplishment do
     accomplishment
     |> cast(attrs, [:name, :description])
     |> validate_required([:name, :description])
+  end
+
+  def embed_changeset(technology, embed_params) do
+    technology
+    |> cast(embed_params, [:embedding_content, :embedding])
+    |> validate_required([:embedding_content, :embedding, :name, :description])
+    |> put_change(:last_embedded, Resume.Util.ecto_naive_now())
   end
 end

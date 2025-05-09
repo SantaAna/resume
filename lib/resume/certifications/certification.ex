@@ -22,4 +22,11 @@ defmodule Resume.Certifications.Certification do
     |> put_change(:user_id, user_scope.user.id)
     |> put_change(:last_user_content_update, Resume.Util.ecto_naive_now())
   end
+
+  def embed_changeset(certification, embed_params) do
+    certification
+    |> cast(embed_params, [:embedding_content, :embedding])
+    |> validate_required([:embedding_content, :embedding, :name, :description, :user_id])
+    |> put_change(:last_embedded, Resume.Util.ecto_naive_now())
+  end
 end

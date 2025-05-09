@@ -1,3 +1,29 @@
+defmodule Resume.CertificationsError do
+  @moduledoc """
+  Represents an error that has occured while working with certifications. 
+  ## Fields
+  - `:message` - message to be returned by raise, if not set the message of the exception  
+  in the `:reason` field will be used.
+  - `:reason` - an `Exception.t()` that is the underlying casue of the inference error. 
+  - `:certification` - a `Certification.t()` that was being processed when the error occured.
+  """
+  defexception [:message, :reason, :certification]
+
+  @type t :: %{
+          message: String.t() | nil,
+          reason: Exception.t(),
+          certification: Resume.Certifications.Certification.t()
+        }
+
+  def message(%__MODULE__{message: message}) when not is_nil(message) do
+    message
+  end
+
+  def message(%__MODULE__{reason: %{__struct__: m, __exception__: true} = reason}) do
+    "Caused by #{inspect(m)}: #{Exception.message(reason)}"
+  end
+end
+
 defmodule Resume.Certifications do
   @moduledoc """
   The Certifications context.
@@ -8,6 +34,8 @@ defmodule Resume.Certifications do
 
   alias Resume.Certifications.Certification
   alias Resume.Accounts.Scope
+  alias Resume.CertificationsError
+  import Resume.Util
 
   @doc """
   Subscribes to scoped notifications about any certification changes.
@@ -141,5 +169,66 @@ defmodule Resume.Certifications do
   """
   def change_certification(%Scope{} = scope, %Certification{} = certification, attrs \\ %{}) do
     Certification.changeset(certification, attrs, scope)
+  end
+
+  @doc """
+  Creates an embedding for a certification using its name and description.
+
+  The function generates embedding content using the certification's name and description,
+  then creates an embedding using the VoyageLite provider. The embedding and its content
+  are stored with the certification record.
+
+  ## Parameters
+    * `certification` - A %Certification{} struct with non-empty name and description fields
+
+  ## Returns
+    * `{:ok, %Certification{}}` - The updated certification with embedding data
+    * `{:error, term()}` - If embedding creation fails
+    * raises `ArgumentError` - If certification name or description is empty
+  """
+  @spec embed_certification(Certification.t()) ::
+          {:ok, Certification.t()}
+          | {:error, Ecto.Changeset.t()}
+          | {:error, CertificationsError.t()}
+  def embed_certification(certification = %Certification{name: name, description: description})
+      when is_non_empty_binary(name) and is_non_empty_binary(description) do
+    with {:ok, embedding_content} <-
+           Resume.Inference.create_certification_embed(name, description),
+         {:ok, embedding} <-
+           Resume.Embedding.Provider.embed(
+             Resume.Embedding.Provider.VoyageLite,
+             embedding_content,
+             input_type: :document
+           ) do
+      certification
+      |> Certification.embed_changeset(%{
+        embedding: embedding,
+        embedding_content: embedding_content
+      })
+      |> Repo.update()
+    else
+      {:error, e} ->
+        {:error, %CertificationsError{reason: e, certification: certification}}
+    end
+  end
+
+  def embed_certification(_),
+    do: raise(ArgumentError, "Must provide certification with non empty name and description")
+
+  @doc """
+  Updates the embeddings for all certification records.
+  If the certification record has been updated since the 
+  last embedding it will be re-embedded using the 
+  `embed_certification/1` function.
+  """
+  def update_embeddings() do
+    query =
+      from(c in Certification,
+        where: c.last_embedded < c.last_user_content_update or is_nil(c.last_embedded)
+      )
+
+    query
+    |> Repo.all()
+    |> Enum.map(&embed_certification/1)
   end
 end
