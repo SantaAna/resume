@@ -7,23 +7,23 @@ defmodule Resume.Repo.Migrations.AddContentTimestamp do
   # generated
   def change do
     alter table("skills") do
-      add :last_user_content_update, :naive_datetime
+      add :last_user_content_update, :naive_datetime, null: false
     end
 
     alter table("technologies") do
-      add :last_user_content_update, :naive_datetime
+      add :last_user_content_update, :naive_datetime, null: false
     end
 
     alter table("educations") do
-      add :last_user_content_update, :naive_datetime
+      add :last_user_content_update, :naive_datetime, null: false
     end
 
     alter table("certifications") do
-      add :last_user_content_update, :naive_datetime
+      add :last_user_content_update, :naive_datetime, null: false
     end
 
     alter table("accomplishments") do
-      add :last_user_content_update, :naive_datetime
+      add :last_user_content_update, :naive_datetime, null: false
     end
   end
 end
