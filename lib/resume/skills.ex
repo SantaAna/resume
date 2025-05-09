@@ -1,3 +1,29 @@
+defmodule Resume.SkillsError do
+  @moduledoc """
+  Represents an error that has occured while working with skills. 
+
+
+  ## Fields
+  - `:message` - message to be returned by raise, if not set the message of the exception  
+  in the `:reason` field will be used.
+  - `:reason` - an `Exception.t()` that is the underlying casue of the inference error. 
+  """
+  defexception [:message, :reason]
+
+  @type t :: %{
+          message: String.t() | nil,
+          reason: Exception.t()
+        }
+
+  def message(%__MODULE__{message: message}) when not is_nil(message) do
+    message
+  end
+
+  def message(%__MODULE__{reason: %{__struct__: m, __exception__: true} = reason}) do
+    "Caused by #{inspect(m)}: #{Exception.message(reason)}"
+  end
+end
+
 defmodule Resume.Skills do
   @moduledoc """
   The Skills context.
@@ -8,6 +34,7 @@ defmodule Resume.Skills do
 
   alias Resume.Skills.Skill
   alias Resume.Accounts.Scope
+  alias Resume.SkillsError
   import Resume.Util
 
   @doc """
@@ -144,6 +171,23 @@ defmodule Resume.Skills do
     Skill.changeset(skill, attrs, scope)
   end
 
+  @doc """
+  Creates an embedding for a skill using its name and description.
+
+  The function generates embedding content using the skill's name and description,
+  then creates an embedding using the VoyageLite provider. The embedding and its content
+  are stored with the skill record.
+
+  ## Parameters
+    * `skill` - A %Skill{} struct with non-empty name and description fields
+
+  ## Returns
+    * `{:ok, %Skill{}}` - The updated skill with embedding data
+    * `{:error, term()}` - If embedding creation fails
+    * raises `ArgumentError` - If skill name or description is empty
+  """
+  @spec embed_skill(Skill.t()) ::
+          {:ok, Skill.t()} | {:error, Ecto.Changeset.t()} | {:error, SkillsError.t()}
   def embed_skill(skill = %Skill{name: skill_name, description: skill_description})
       when is_non_empty_binary(skill_name) and is_non_empty_binary(skill_description) do
     with {:ok, embedding_content} <-
@@ -156,9 +200,30 @@ defmodule Resume.Skills do
            ) do
       skill
       |> Skill.embed_changeset(%{embedding: embedding, embedding_content: embedding_content})
+      |> Repo.update()
+    else
+      {:error, e} ->
+        %SkillsError{reason: e}
     end
   end
 
   def embed_skill(_),
     do: raise(ArgumentError, "Must provide skill with non empty name and description")
+
+  @doc """
+  Updates the embeddings for all skill records.
+  If the skill record has been updated since the 
+  last embedding it will be re-embedded using the 
+  `embed_skill/1` function.
+  """
+  def update_embeddings() do
+    query =
+      from(s in Skill,
+        where: s.embedding_content_updated_at < s.updated_at
+      )
+
+    query
+    |> Repo.all()
+    |> Enum.map(&embed_skill/1)
+  end
 end

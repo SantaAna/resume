@@ -1,3 +1,28 @@
+defmodule Resume.Embedding.Provider.VoyageLiteError do
+  @moduledoc """
+  Represents an error that has occured while generating a voyagelite embedding.
+
+  ## Fields
+  - `:message` - message to be returned by raise, if not set the message of the exception  
+  in the `:reason` field will be used.
+  - `:reason` - an `Exception.t()` that is the underlying casue of the inference error. 
+  """
+  defexception [:message, :reason]
+
+  @type t :: %{
+          message: String.t() | nil,
+          reason: Exception.t()
+        }
+
+  def message(%__MODULE__{message: message}) when not is_nil(message) do
+    message
+  end
+
+  def message(%__MODULE__{reason: %{__struct__: m, __exception__: true} = reason}) do
+    "Caused by #{inspect(m)}: #{Exception.message(reason)}"
+  end
+end
+
 defmodule Resume.Embedding.Provider.VoyageLite do
   @behaviour Resume.Embedding.Provider
   @moduledoc """
@@ -5,6 +30,7 @@ defmodule Resume.Embedding.Provider.VoyageLite do
   embedding model provided by Voyage AI.
   """
   import Resume.Util
+  alias Resume.Embedding.Provider.VoyageLiteError
 
   @embed_options NimbleOptions.new!(
                    input_type: [
@@ -27,6 +53,8 @@ defmodule Resume.Embedding.Provider.VoyageLite do
   #{NimbleOptions.docs(@embed_options)}
   """
   @impl true
+  @spec embed(input :: String.t(), options :: Keyword.t()) ::
+          {:ok, list()} | {:error, VoyageLiteError.t()}
   def embed(input, options \\ [])
 
   def embed(input, options) when is_non_empty_binary(input) do
@@ -44,8 +72,11 @@ defmodule Resume.Embedding.Provider.VoyageLite do
     |> Req.Request.append_response_steps(embedding_missing: &embedding_missing/1)
     |> Req.request()
     |> case do
-      {:ok, %{embedding: e}} -> {:ok, e}
-      {:error, _} = e -> e
+      {:ok, %{embedding: e}} ->
+        {:ok, e}
+
+      {:error, _} = e ->
+        %VoyageLiteError{reason: e}
     end
   end
 
@@ -57,7 +88,7 @@ defmodule Resume.Embedding.Provider.VoyageLite do
     do: {request, response}
 
   defp embedding_missing({request, _}),
-    do: {request, RuntimeError.exception("no embedding returned")}
+    do: {request, %VoyageLiteError{message: "no embedding returned"}}
 
   defp extract_embedding({request, response}) do
     {request,
@@ -68,7 +99,7 @@ defmodule Resume.Embedding.Provider.VoyageLite do
     if response.status == 200 do
       {request, response}
     else
-      {request, RuntimeError.exception("invalid response from endpoint")}
+      {request, %VoyageLiteError{message: "invalid response from endpoint"}}
     end
   end
 

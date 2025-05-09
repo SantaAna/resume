@@ -1,3 +1,28 @@
+defmodule Resume.InferenceError do
+  @moduledoc """
+  Represents an error that has occured while generating an inferecnce.
+
+  ## Fields
+  - `:message` - message to be returned by raise, if not set the message of the exception  
+  in the `:reason` field will be used.
+  - `:reason` - an `Exception.t()` that is the underlying casue of the inference error. 
+  """
+  defexception [:message, :reason]
+
+  @type t :: %{
+          message: String.t() | nil,
+          reason: Exception.t()
+        }
+
+  def message(%__MODULE__{message: message}) when not is_nil(message) do
+    message
+  end
+
+  def message(%__MODULE__{reason: %{__struct__: m, __exception__: true} = reason}) do
+    "Caused by #{inspect(m)}: #{Exception.message(reason)}"
+  end
+end
+
 defmodule Resume.Inference do
   @moduledoc """
   Functions for producing inferences from OpenAI
@@ -14,13 +39,14 @@ defmodule Resume.Inference do
         warn: false
 
   alias Resume.Search
+  alias Resume.InferenceError
 
   @doc """
   Produces embedding for the given `cert_name` with 
   `cert_description`
   """
   @spec create_certification_embed(cert_name :: String.t(), cert_user_description :: String.t()) ::
-          {:ok, String.t()} | {:error, Exception.t()}
+          {:ok, String.t()} | {:error, InferenceError.t()}
   def create_certification_embed(cert_name, cert_user_description) do
     start_of_chain()
     |> LLMChain.new!()
@@ -43,7 +69,7 @@ defmodule Resume.Inference do
         {:ok, final_chain.last_message.content}
 
       {:error, _exception} = e ->
-        e
+        %InferenceError{reason: e}
     end
   end
 
@@ -53,7 +79,7 @@ defmodule Resume.Inference do
   """
 
   @spec create_skill_embed(skill_name :: String.t(), skill_user_description :: String.t()) ::
-          {:ok, String.t()} | {:error, Exception.t()}
+          {:ok, String.t()} | {:error, InferenceError.t()}
   def create_skill_embed(skill_name, skill_user_description) do
     start_of_chain()
     |> LLMChain.new!()
@@ -76,7 +102,7 @@ defmodule Resume.Inference do
         {:ok, final_chain.last_message.content}
 
       {:error, _exception} = e ->
-        e
+        %InferenceError{reason: e}
     end
   end
 
@@ -88,7 +114,7 @@ defmodule Resume.Inference do
           institution_name :: String.t(),
           institution_type :: String.t(),
           diploma_earned :: String.t()
-        ) :: {:ok, String.t()} | {:error, Exception.t()}
+        ) :: {:ok, String.t()} | {:error, InferenceError.t()}
   def create_education_embed(institution_name, institution_type, diploma_earned) do
     start_of_chain()
     |> LLMChain.new!()
@@ -111,7 +137,7 @@ defmodule Resume.Inference do
         {:ok, final_chain.last_message.content}
 
       {:error, _exception} = e ->
-        e
+        %InferenceError{reason: e}
     end
   end
 
@@ -122,7 +148,7 @@ defmodule Resume.Inference do
   @spec create_accomplishment_embed(
           accomplishment__name :: String.t(),
           accomplishment_description :: String.t()
-        ) :: {:ok, embedding :: String.t()} | {:error, Exception.t()}
+        ) :: {:ok, embedding :: String.t()} | {:error, InferenceError.t()}
   def create_accomplishment_embed(accomplishment_name, accomplishment_description) do
     start_of_chain()
     |> LLMChain.new!()
@@ -141,7 +167,7 @@ defmodule Resume.Inference do
         {:ok, final_chain.last_message.content}
 
       {:error, _exception} = e ->
-        e
+        %InferenceError{reason: e}
     end
   end
 
