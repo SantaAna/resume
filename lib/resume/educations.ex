@@ -140,8 +140,6 @@ defmodule Resume.Educations do
 
   """
   def change_education(%Scope{} = scope, %Education{} = education, attrs \\ %{}) do
-    true = education.user_id == scope.user.id
-
     Education.changeset(education, attrs, scope)
   end
 end

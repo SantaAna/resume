@@ -98,9 +98,7 @@ defmodule ResumeWeb.ComponentsLive.EducationForm do
   end
 
   defp handle_edu(socket, :new, params) do
-    IO.inspect(params, label: "inserting with params")
-
-    case dbg(Educations.create_education(socket.assigns.current_scope, params)) do
+    case Educations.create_education(socket.assigns.current_scope, params) do
       {:ok, edu} ->
         {:noreply, socket |> stream_insert(:educations, edu) |> fresh_socket()}
 
