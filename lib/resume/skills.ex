@@ -7,12 +7,14 @@ defmodule Resume.SkillsError do
   - `:message` - message to be returned by raise, if not set the message of the exception  
   in the `:reason` field will be used.
   - `:reason` - an `Exception.t()` that is the underlying casue of the inference error. 
+  - `:skill` - a `Skill.t()` that was being processed when the error occured.
   """
-  defexception [:message, :reason]
+  defexception [:message, :reason, :skill]
 
   @type t :: %{
           message: String.t() | nil,
-          reason: Exception.t()
+          reason: Exception.t(),
+          skill: Resume.Skills.Skill.t()
         }
 
   def message(%__MODULE__{message: message}) when not is_nil(message) do
@@ -203,7 +205,7 @@ defmodule Resume.Skills do
       |> Repo.update()
     else
       {:error, e} ->
-        %SkillsError{reason: e}
+        {:error, %SkillsError{reason: e, skill: skill}}
     end
   end
 
@@ -219,7 +221,7 @@ defmodule Resume.Skills do
   def update_embeddings() do
     query =
       from(s in Skill,
-        where: s.embedding_content_updated_at < s.updated_at
+        where: s.last_embedded < s.last_user_content_update or is_nil(s.last_embedded)
       )
 
     query
