@@ -2,6 +2,15 @@ defmodule Resume.Technologies.Technology do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %{
+          name: String.t(),
+          description: String.t(),
+          embedding_content: String.t(),
+          embedding: list(),
+          last_embedded: NaiveDateTime.t(),
+          last_user_content_update: NaiveDateTime.t()
+        }
+
   schema "technologies" do
     field :name, :string
     field :description, :string
@@ -21,5 +30,12 @@ defmodule Resume.Technologies.Technology do
     |> validate_required([:name, :description])
     |> put_change(:user_id, user_scope.user.id)
     |> put_change(:last_user_content_update, Resume.Util.ecto_naive_now())
+  end
+
+  def embed_changeset(technology, embed_params) do
+    technology
+    |> cast(embed_params, [:embedding_content, :embedding])
+    |> validate_required([:embedding_content, :embedding, :name, :description, :user_id])
+    |> put_change(:last_embedded, Resume.Util.ecto_naive_now())
   end
 end
