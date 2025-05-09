@@ -82,7 +82,7 @@ defmodule ResumeWeb.ComponentsLive.SkillForm do
   defp handle_skill(socket, :new, params) do
     case Skills.create_skill(socket.assigns.current_scope, params) do
       {:ok, skill} ->
-        {:noreply, socket |> stream_insert(:skill, skill) |> fresh_socket()}
+        {:noreply, socket |> stream_insert(:skills, skill) |> fresh_socket()}
 
       {:error, cs} ->
         {:noreply, assign(socket, form: to_form(cs))}
