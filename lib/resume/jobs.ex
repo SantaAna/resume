@@ -8,6 +8,7 @@ defmodule Resume.Jobs do
 
   alias Resume.Jobs.Job
   alias Resume.Accounts.Scope
+  alias Resume.Accounts.User
 
   @doc """
   Subscribes to scoped notifications about any job changes.
@@ -34,6 +35,8 @@ defmodule Resume.Jobs do
   @doc """
   Returns the list of jobs.
 
+  If given a user struct will retrieve jobs for that user.
+
   ## Examples
 
       iex> list_jobs(scope)
@@ -44,13 +47,27 @@ defmodule Resume.Jobs do
     Repo.all(from job in Job, where: job.user_id == ^scope.user.id)
   end
 
+  def list_jobs(%User{} = user) do
+    Repo.all(from job in Job, where: job.user_id == ^user.id)
+  end
+
   @doc """
-  As list jobs but will preload accomplishments
+  As list jobs but will preload accomplishments.
+
+  If given a user ID will fetch jobs with accomplishments for that user.
   """
   def list_jobs_with_accomplishments(%Scope{} = scope) do
     Repo.all(
       from job in Job,
         where: job.user_id == ^scope.user.id,
+        preload: [:accomplishments]
+    )
+  end
+
+  def list_jobs_with_accomplishments(%User{} = user) do
+    Repo.all(
+      from job in Job,
+        where: job.user_id == ^user.id,
         preload: [:accomplishments]
     )
   end
