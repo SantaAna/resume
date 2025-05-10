@@ -32,11 +32,13 @@ defmodule Resume.Skills do
   """
 
   import Ecto.Query, warn: false
+  import Pgvector.Ecto.Query, warn: false
   alias Resume.Repo
 
   alias Resume.Skills.Skill
   alias Resume.Accounts.Scope
   alias Resume.SkillsError
+  alias Resume.Accounts.User
   import Resume.Util
 
   @doc """
@@ -227,5 +229,58 @@ defmodule Resume.Skills do
     query
     |> Repo.all()
     |> Enum.map(&embed_skill/1)
+  end
+
+  @doc """
+  Given a `User` struct an `input_string` and a `count` will return
+  the `count` closest accomplishments by cosine distance, will 
+  return as `return_type`
+  """
+  @spec top_embeds(user :: map(), input_string :: String.t(), count :: integer(), :map | :json) ::
+          {:ok, list(Skill.t())} | {:error, SkillsError.t()}
+  def top_embeds(user = %User{}, input_string, count, :map)
+      when is_binary(input_string) and is_integer(count) do
+    with {:ok, embedding} <-
+           Resume.Embedding.Provider.embed(
+             Resume.Embedding.Provider.VoyageLite,
+             input_string,
+             input_type: :document
+           ) do
+      q =
+        from skill in Skill,
+          where: skill.user_id == ^user.id,
+          order_by: cosine_distance(skill.embedding, ^embedding),
+          limit: ^count,
+          select: %{
+            description: skill.description,
+            long_description: skill.embedding_content,
+            name: skill.name
+          }
+
+      {:ok, Repo.all(q)}
+    else
+      {:error, e} ->
+        {:error, %SkillsError{reason: e}}
+    end
+  end
+
+  def top_embeds(user = %User{}, input_string, count, :json)
+      when is_integer(count) and is_binary(input_string) do
+    with {:ok, map_value} <- top_embeds(user, input_string, count, :map) do
+      {:ok, JSON.encode!(map_value)}
+    end
+  end
+
+  def top_embeds(user, input_string, count, output) when is_binary(count) do
+    with {count_integer, ""} <- Integer.parse(count) do
+      top_embeds(user, input_string, count_integer, output)
+    else
+      {_, _} ->
+        %SkillsError{
+          reason: %ArgumentError{
+            message: "`top_embeds\4` expects a count argument that represents an integer"
+          }
+        }
+    end
   end
 end

@@ -42,6 +42,7 @@ defmodule Resume.Inference do
 
   alias Resume.Search
   alias Resume.InferenceError
+  require Logger
 
   @doc """
   Produces embedding for the given `cert_name` with 
@@ -205,6 +206,40 @@ defmodule Resume.Inference do
       {:error, chain, e} ->
         {:error, %InferenceError{reason: e, chain: chain}}
     end
+  end
+
+  defp skills_tool(user) do
+    Function.new!(%{
+      name: "get_user_skills",
+      description:
+        "Returns users skills that most closely match your query. Will return JSON in the format [{name: accomplishment_name, description: accomplishment_short_description, long_description: accomplishment_long_descripition}]",
+      parameters: [
+        FunctionParam.new!(%{name: "query", type: :string, required: true}),
+        FunctionParam.new!(%{name: "count", type: :integer})
+      ],
+      function: fn %{"query" => term} = arg, _context ->
+        Logger.info("get_user_skills called with term: #{term}")
+        count = Map.get(arg, :count, 3)
+        Resume.Accomplishments.top_embeds(user, term, count, :json)
+      end
+    })
+  end
+
+  defp accomplishment_tool(user) do
+    Function.new!(%{
+      name: "get_user_accomplishments",
+      description:
+        "Returns users accomplishments that most closely match your query. Will return JSON in the format [{name: accomplishment_name, description: accomplishment_short_description, long_description: accomplishment_long_descripition}]",
+      parameters: [
+        FunctionParam.new!(%{name: "query", type: :string, required: true}),
+        FunctionParam.new!(%{name: "count", type: :integer})
+      ],
+      function: fn %{"query" => term} = arg, _context ->
+        Logger.info("get_user_skills called with term: #{term}")
+        count = Map.get(arg, :count, 3)
+        Resume.Accomplishments.top_embeds(user, term, count, :json)
+      end
+    })
   end
 
   # defines a search tool that can be called by the
