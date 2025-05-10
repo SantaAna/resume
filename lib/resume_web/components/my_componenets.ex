@@ -512,7 +512,7 @@ defmodule ResumeWeb.MyComponenets do
     |> Enum.take(4)
     |> then(fn
       list when elipsis? ->
-        List.insert_at(list, "...", -1)
+        List.insert_at(list, -1, "...")
 
       list ->
         list
@@ -520,5 +520,5 @@ defmodule ResumeWeb.MyComponenets do
     |> Enum.join(",")
   end
 
-  defp accomps_string(_), do: ""
+  defp accomps_string(_, _), do: ""
 end
