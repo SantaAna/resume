@@ -8,6 +8,7 @@ defmodule Resume.Accomplishments.Accomplishment do
           embedding_content: String.t(),
           embedding: Pgvector.Ecto.Vector.t(),
           last_embedded: NaiveDateTime.t(),
+          last_user_content_update: NaiveDateTime.t(),
           job_id: integer()
         }
 
@@ -17,6 +18,7 @@ defmodule Resume.Accomplishments.Accomplishment do
     field :embedding, Pgvector.Ecto.Vector
     field :embedding_content, :string
     field :last_embedded, :naive_datetime
+    field :last_user_content_update, :naive_datetime
     field :job_id, :id
 
     timestamps(type: :utc_datetime)
@@ -36,6 +38,7 @@ defmodule Resume.Accomplishments.Accomplishment do
     accomplishment
     |> cast(attrs, [:name, :description])
     |> validate_required([:name, :description])
+    |> put_change(:last_user_content_update, Resume.Util.ecto_naive_now())
   end
 
   def embed_changeset(technology, embed_params) do

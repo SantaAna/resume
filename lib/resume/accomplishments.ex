@@ -31,11 +31,13 @@ defmodule Resume.Accomplishments do
   """
 
   import Ecto.Query, warn: false
+  import Pgvector.Ecto.Query
   alias Resume.Repo
 
   alias Resume.Accomplishments.Accomplishment
   alias Resume.Accounts.Scope
   alias Resume.AccomplishmentsError
+  alias Resume.Accounts.User
   import Resume.Util
 
   @doc """
@@ -237,5 +239,61 @@ defmodule Resume.Accomplishments do
     query
     |> Repo.all()
     |> Enum.map(&embed_accomplishment/1)
+  end
+
+  @doc """
+  Given a `User` struct an `input_string` and a `count` will return
+  the `count` closest accomplishments by cosine different will 
+  return as `return_type`
+  """
+  @spec top_embeds(user :: map(), input_string :: String.t(), count :: integer(), :map | :json) ::
+          {:ok, list(Accomplishment.t())} | {:error, AccomplishmentsError}
+  def top_embeds(user = %User{}, input_string, count, :map)
+      when is_binary(input_string) and is_integer(count) do
+    with {:ok, embedding} <-
+           Resume.Embedding.Provider.embed(
+             Resume.Embedding.Provider.VoyageLite,
+             input_string,
+             input_type: :document
+           ) do
+      jobs = from job in Resume.Jobs.Job, where: job.user_id == ^user.id
+
+      q =
+        from accomp in Accomplishment,
+          join: job in ^jobs,
+          on: accomp.job_id == job.id,
+          order_by: cosine_distance(accomp.embedding, ^embedding),
+          limit: ^count,
+          select: %{
+            description: accomp.description,
+            long_description: accomp.embedding_content,
+            name: accomp.name
+          }
+
+      {:ok, Repo.all(q)}
+    else
+      {:error, e} ->
+        {:error, %AccomplishmentsError{reason: e}}
+    end
+  end
+
+  def top_embeds(user = %User{}, input_string, count, :json)
+      when is_integer(count) and is_binary(input_string) do
+    with {:ok, map_value} <- top_embeds(user, input_string, count, :map) do
+      {:ok, JSON.encode!(map_value)}
+    end
+  end
+
+  def top_embeds(user, input_string, count, output) when is_binary(count) do
+    with {count_integer, ""} <- Integer.parse(count) do
+      top_embeds(user, input_string, count_integer, output)
+    else
+      {_, _} ->
+        %AccomplishmentsError{
+          reason: %ArgumentError{
+            message: "`top_embeds\4` expects a count argument that represents an integer"
+          }
+        }
+    end
   end
 end
