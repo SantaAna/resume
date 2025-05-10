@@ -6,12 +6,14 @@ defmodule Resume.InferenceError do
   - `:message` - message to be returned by raise, if not set the message of the exception  
   in the `:reason` field will be used.
   - `:reason` - an `Exception.t()` that is the underlying casue of the inference error. 
+  - `:chain` - the llm chain that was running when the error ocured.
   """
-  defexception [:message, :reason]
+  defexception [:message, :reason, :chain]
 
   @type t :: %{
           message: String.t() | nil,
-          reason: Exception.t()
+          reason: Exception.t(),
+          chain: LangChain.Chains.LLMChain.t()
         }
 
   def message(%__MODULE__{message: message}) when not is_nil(message) do
@@ -68,8 +70,8 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, _exception} = e ->
-        %InferenceError{reason: e}
+      {:error, chain, e} ->
+        {:error, %InferenceError{reason: e, chain: chain}}
     end
   end
 
@@ -101,8 +103,8 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, e} ->
-        {:error, %InferenceError{reason: e}}
+      {:error, chain, e} ->
+        {:error, %InferenceError{reason: e, chain: chain}}
     end
   end
 
@@ -170,8 +172,8 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, e} ->
-        {:error, %InferenceError{reason: e}}
+      {:error, chain, e} ->
+        {:error, %InferenceError{reason: e, chain: chain}}
     end
   end
 
@@ -200,8 +202,8 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, e} ->
-        {:error, %InferenceError{reason: e}}
+      {:error, chain, e} ->
+        {:error, %InferenceError{reason: e, chain: chain}}
     end
   end
 
