@@ -35,6 +35,12 @@ defmodule Resume.Search.Providers.LangSearch do
                       type: {:in, 1..10},
                       default: 10,
                       doc: "the number of results to return"
+                    ],
+                    max_length: [
+                      type: {:or, [:integer, nil]},
+                      default: 500,
+                      doc:
+                        "the number of characters that will be taken from the search result. If set to `nil` then no limit is applied"
                     ]
                   )
   @doc """
@@ -56,8 +62,11 @@ defmodule Resume.Search.Providers.LangSearch do
     |> Req.Request.append_request_steps(
       stash_options: &Req.Request.put_private(&1, :options, opts)
     )
-    |> Req.Request.append_response_steps(check_status: &check_status/1)
-    |> Req.Request.append_response_steps(extract_results: &extract_results/1)
+    |> Req.Request.append_response_steps(
+      check_status: &check_status/1,
+      extract_results: &extract_results/1,
+      maybe_trim: &maybe_trim_response/1
+    )
     |> Req.request()
     |> case do
       {:ok, resp} -> {:ok, Req.Response.get_private(resp, :to_return)}
@@ -76,6 +85,21 @@ defmodule Resume.Search.Providers.LangSearch do
        request: request,
        response: response
      )}
+  end
+
+  defp maybe_trim_response({request, response}) do
+    results = Req.Response.get_private(response, :to_return)
+    options = Req.Request.get_private(request, :options)
+
+    new_results =
+      if max = options[:max_length] do
+        results
+        |> Enum.map(&String.slice(&1, 0..max))
+      else
+        results
+      end
+
+    {request, Req.Response.put_private(response, :to_return, new_results)}
   end
 
   defp extract_results({request, response}) do
