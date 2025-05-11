@@ -215,12 +215,29 @@ defmodule Resume.Inference do
       Message.new_system!("""
       You are writing an opening paragraph for a resume.  You should give a brief pitch for then
       candidate targetting a hiring manager.
-      Use the tools provided to get more information on the users previous jobs, accomplishments, skills, certifications, and known technologies.
+      Provide at least one relevant concrete example.  
+      Do not make up the example! Use the provided tools to learn more about the candidate.
+      Use the web search tool to lookup unfamiliar terms if needed.
       """),
       Message.new_user!("""
       I'm applying for a job with the job description: #{job_description} please help me write an introduction.
       """)
     ])
+    |> LLMChain.add_tools([
+      skills_tool(user),
+      certifications_tool(user),
+      technologies_tool(user),
+      accomplishment_tool(user),
+      search_tool()
+    ])
+    |> LLMChain.run(mode: :while_needs_response)
+    |> case do
+      {:ok, final_chain} ->
+        {:ok, final_chain.last_message.content}
+
+      {:error, chain, e} ->
+        {:error, %InferenceError{reason: e, chain: chain}}
+    end
   end
 
   defp skills_tool(user) do
@@ -240,11 +257,28 @@ defmodule Resume.Inference do
     })
   end
 
+  defp certifications_tool(user) do
+    Function.new!(%{
+      name: "get_user_technologies",
+      description:
+        "Returns users certifications that most closely match your query. Will return JSON in the format [{name: certification_name, description: certification_description, long_description: certification_long_description]",
+      parameters: [
+        FunctionParam.new!(%{name: "query", type: :string, required: true}),
+        FunctionParam.new!(%{name: "count", type: :integer})
+      ],
+      function: fn %{"query" => term} = arg, _context ->
+        Logger.info("get_user_technologies called with term: #{term}")
+        count = Map.get(arg, :count, 3)
+        Resume.Certifications.top_embeds(user, term, count, :json)
+      end
+    })
+  end
+
   defp technologies_tool(user) do
     Function.new!(%{
       name: "get_user_technologies",
       description:
-        "Returns users technologies that most closely match your query. Will return JSON in the format [{name: technology_name, description: technology_description}, long_description: technology_long_description]",
+        "Returns users technologies that most closely match your query. Will return JSON in the format [{name: technology_name, description: technology_description, long_description: technology_long_description]",
       parameters: [
         FunctionParam.new!(%{name: "query", type: :string, required: true}),
         FunctionParam.new!(%{name: "count", type: :integer})
