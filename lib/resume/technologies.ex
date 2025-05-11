@@ -32,11 +32,13 @@ defmodule Resume.Technologies do
   """
 
   import Ecto.Query, warn: false
+  import Pgvector.Ecto.Query, warn: false
   alias Resume.Repo
 
   alias Resume.Technologies.Technology
   alias Resume.Accounts.Scope
   alias Resume.TechnologyError
+  alias Resume.Accounts.User
   import Resume.Util
 
   @doc """
@@ -227,5 +229,58 @@ defmodule Resume.Technologies do
     query
     |> Repo.all()
     |> Enum.map(&embed_technology/1)
+  end
+
+  @doc """
+  Given a `User` struct an `input_string` and a `count` will return
+  the `count` closest technologies by cosine distance, will 
+  return as `return_type`
+  """
+  @spec top_embeds(user :: map(), input_string :: String.t(), count :: integer(), :map | :json) ::
+          {:ok, list(Technology.t())} | {:error, TechnologyError.t()}
+  def top_embeds(user = %User{}, input_string, count, :map)
+      when is_binary(input_string) and is_integer(count) do
+    with {:ok, embedding} <-
+           Resume.Embedding.Provider.embed(
+             Resume.Embedding.Provider.VoyageLite,
+             input_string,
+             input_type: :document
+           ) do
+      q =
+        from technology in Technology,
+          where: technology.user_id == ^user.id,
+          order_by: cosine_distance(technology.embedding, ^embedding),
+          limit: ^count,
+          select: %{
+            description: technology.description,
+            long_description: technology.embedding_content,
+            name: technology.name
+          }
+
+      {:ok, Repo.all(q)}
+    else
+      {:error, e} ->
+        {:error, %TechnologyError{reason: e}}
+    end
+  end
+
+  def top_embeds(user = %User{}, input_string, count, :json)
+      when is_integer(count) and is_binary(input_string) do
+    with {:ok, map_value} <- top_embeds(user, input_string, count, :map) do
+      {:ok, JSON.encode!(map_value)}
+    end
+  end
+
+  def top_embeds(user, input_string, count, output) when is_binary(count) do
+    with {count_integer, ""} <- Integer.parse(count) do
+      top_embeds(user, input_string, count_integer, output)
+    else
+      {_, _} ->
+        %TechnologyError{
+          reason: %ArgumentError{
+            message: "`top_embeds\4` expects a count argument that represents an integer"
+          }
+        }
+    end
   end
 end
