@@ -138,8 +138,8 @@ defmodule Resume.Inference do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
 
-      {:error, e} ->
-        {:error, %InferenceError{reason: e}}
+      {:error, chain, e} ->
+        {:error, %InferenceError{reason: e, chain: chain}}
     end
   end
 
@@ -208,6 +208,21 @@ defmodule Resume.Inference do
     end
   end
 
+  def resume_introduction(user, job_description) do
+    start_of_chain()
+    |> LLMChain.new!()
+    |> LLMChain.add_messages([
+      Message.new_system!("""
+      You are writing an opening paragraph for a resume.  You should give a brief pitch for then
+      candidate targetting a hiring manager.
+      Use the tools provided to get more information on the users previous jobs, accomplishments, skills, certifications, and known technologies.
+      """),
+      Message.new_user!("""
+      I'm applying for a job with the job description: #{job_description} please help me write an introduction.
+      """)
+    ])
+  end
+
   defp skills_tool(user) do
     Function.new!(%{
       name: "get_user_skills",
@@ -225,6 +240,23 @@ defmodule Resume.Inference do
     })
   end
 
+  defp technologies_tool(user) do
+    Function.new!(%{
+      name: "get_user_technologies",
+      description:
+        "Returns users technologies that most closely match your query. Will return JSON in the format [{name: technology_name, description: technology_description}, long_description: technology_long_description]",
+      parameters: [
+        FunctionParam.new!(%{name: "query", type: :string, required: true}),
+        FunctionParam.new!(%{name: "count", type: :integer})
+      ],
+      function: fn %{"query" => term} = arg, _context ->
+        Logger.info("get_user_technologies called with term: #{term}")
+        count = Map.get(arg, :count, 3)
+        Resume.Technologies.top_embeds(user, term, count, :json)
+      end
+    })
+  end
+
   defp accomplishment_tool(user) do
     Function.new!(%{
       name: "get_user_accomplishments",
@@ -235,7 +267,7 @@ defmodule Resume.Inference do
         FunctionParam.new!(%{name: "count", type: :integer})
       ],
       function: fn %{"query" => term} = arg, _context ->
-        Logger.info("get_user_skills called with term: #{term}")
+        Logger.info("get_user_accomplishments called with term: #{term}")
         count = Map.get(arg, :count, 3)
         Resume.Accomplishments.top_embeds(user, term, count, :json)
       end
