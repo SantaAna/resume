@@ -215,9 +215,19 @@ defmodule Resume.Inference do
       Message.new_system!("""
       You are writing an opening paragraph for a resume.  You should give a brief pitch for then
       candidate targetting a hiring manager.
-      Provide at least one relevant concrete example.  
+
       Do not make up the example! Use the provided tools to learn more about the candidate.
       Use the web search tool to lookup unfamiliar terms if needed.
+
+      Do not say that the user has done anything at the company they are applying for.
+
+
+      When the critique_output function gives your paragraph a "good" rating then you are done and can send 
+      the paragraph to the user.
+
+      Use the feedback from critique_output to imrpove your paragraph.
+
+      Do not mention the feedback directly in your output
       """),
       Message.new_user!("""
       I'm applying for a job with the job description: #{job_description} please help me write an introduction.
@@ -228,9 +238,10 @@ defmodule Resume.Inference do
       certifications_tool(user),
       technologies_tool(user),
       accomplishment_tool(user),
+      critique_tool(user, job_description),
       search_tool()
     ])
-    |> LLMChain.run(mode: :while_needs_response)
+    |> LLMChain.run(mode: :while_needs_response, max_runs: 3)
     |> case do
       {:ok, final_chain} ->
         {:ok, final_chain.last_message.content}
@@ -238,6 +249,93 @@ defmodule Resume.Inference do
       {:error, chain, e} ->
         {:error, %InferenceError{reason: e, chain: chain}}
     end
+  end
+
+  def critique_opening(paragraph, user, job_description) do
+    result =
+      start_of_chain()
+      |> LLMChain.new!()
+      |> LLMChain.add_messages([
+        Message.new_system!("""
+          You are reviewing the opening paragraph for a resume written by an
+          overly effusive LLM assitant.  Please read the provided paragraph
+          and respond with helpful instructions to improve the LLMs output. If 
+          you think the paragraph is good enough reply with OK.
+
+          Do not attempt to rewrite the paragraph, just provide specific fededback.
+
+          Do not provide feedback that could lead LLM assistant to claim to have worked
+          at the company they are applying to.
+          
+          Do not mention any specific number or metric.  Never suggest or use an example
+          that contains a specific number or percentage.
+
+          Your target audience is a hiring manager, who you need to interest in the resume 
+          so they will continue reading.
+
+          return your output as json with the following format: 
+          {
+           rating: "terrible" | "bad" | "okay" | "good" | "great",
+           feedback: <your feedback text>
+          }
+
+          the rating scale is: 
+          terrible - sure to be rejected, hard to read
+          bad - very likely to be rejected, numerous errors 
+          okay - even chance of rejection, some flaws but readable
+          good - will stand out from other resumes, writing is concise and strong
+          great - excellent composition and will leave a great impression on those who read it.
+        """),
+        Message.new_user!("""
+              Hello please help me improve the following opening paragraph: 
+
+              #{paragraph}
+
+              I'm writing it to apply to the job with the following description:
+
+              #{job_description}
+        """)
+      ])
+      |> LLMChain.add_tools([
+        skills_tool(user),
+        certifications_tool(user),
+        technologies_tool(user),
+        accomplishment_tool(user)
+      ])
+      |> LLMChain.run()
+
+    case result do
+      {:ok, final_chain} ->
+        {:ok, final_chain.last_message.content}
+
+      {:error, chain, e} ->
+        {:error, %InferenceError{reason: e, chain: chain}}
+    end
+  end
+
+  defp critique_tool(user, job_description) do
+    Function.new!(%{
+      name: "critique_output",
+      description:
+        "provides helfpul feedback on your proposed paragraph. Call this with the paragraph you intend to return to the user.",
+      parameters: [
+        FunctionParam.new!(%{name: "paragraph", type: :string, required: true})
+      ],
+      function: fn %{"paragraph" => paragraph} = arg, _context ->
+        critique_opening(paragraph, user, job_description)
+        |> case do
+          {:ok, response} ->
+            response
+            |> IO.inspect(
+              label:
+                "critique tool called with #{inspect(arg)}, returned the following feedback: "
+            )
+
+          {:error, _} = e ->
+            e
+        end
+      end
+    })
   end
 
   defp skills_tool(user) do
@@ -252,14 +350,14 @@ defmodule Resume.Inference do
       function: fn %{"query" => term} = arg, _context ->
         Logger.info("get_user_skills called with term: #{term}")
         count = Map.get(arg, :count, 3)
-        Resume.Accomplishments.top_embeds(user, term, count, :json)
+        Resume.Skills.top_embeds(user, term, count, :json)
       end
     })
   end
 
   defp certifications_tool(user) do
     Function.new!(%{
-      name: "get_user_technologies",
+      name: "get_user_certifications",
       description:
         "Returns users certifications that most closely match your query. Will return JSON in the format [{name: certification_name, description: certification_description, long_description: certification_long_description]",
       parameters: [
@@ -342,5 +440,5 @@ defmodule Resume.Inference do
     """
 
   # used to start langchain
-  defp start_of_chain(), do: %{llm: ChatOpenAI.new!(%{model: "gpt-4"})}
+  defp start_of_chain(), do: %{llm: ChatOpenAI.new!(%{model: "o4-mini"})}
 end
