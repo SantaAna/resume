@@ -118,7 +118,7 @@ defmodule Resume.Embedding.Provider.VoyageLite do
   end
 
   defp model_name() do
-    "voyage-3-lite"
+    "voyage-3.5-lite"
   end
 
   defp get_api_key() do
