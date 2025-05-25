@@ -1,5 +1,5 @@
 %{
-  title: "making this site",
+  title: "Making this Site",
   date: "2025-04-22",
   id: "2",
   tags: ~w(elixir web public frontpage), 
