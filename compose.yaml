@@ -10,6 +10,10 @@ services:
       SECRET_KEY_BASE: ${SECRET_KEY_BASE} 
       PHX_HOST: ${PHX_HOST}
       ADMIN_USER: ${ADMIN_USER}
+      VOYAGE_KEY: ${VOYAGE_KEY}
+      LANGSEARCH_KEY: ${LANGSEARCH_KEY}
+      OPENAI_KEY: ${OPENAI_KEY}
+      OPENAI_ORG_KEY: ${OPENAI_ORG_KEY}
     depends_on:
       - db
       - proxy
